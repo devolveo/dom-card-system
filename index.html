@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Card Manager</h1>
+
+        <section class="card-form">
+            <h2>Create New Card</h2>
+            <form id="create-card-form">
+                <input type="text" name="title" placeholder="Card Title" required>
+                <textarea name="description" placeholder="Card Description" rows="3" required></textarea>
+                <select name="category">
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="study">Study</option>
+                </select>
+                <button type="submit">Create Card</button>
+            </form>
+        </section>
+
+        <section class="controls">
+            <input type="search" id="search-input" placeholder="Search cards...">
+            <select id="filter-category">
+                <option value="all">All Categories</option>
+                <option value="work">Work</option>
+                <option value="personal">Personal</option>
+                <option value="study">Study</option>
+            </select>
+        </section>
+
+        <div id="cards-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
