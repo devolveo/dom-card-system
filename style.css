@@ -161,3 +161,107 @@ button[type="submit"]:hover {
     transform: scale(0.9) rotate(3deg);
   }
 }
+
+/* ========================================
+   EDIT-IN-PLACE FOUNDATION STYLES
+   ======================================== */
+
+/* Hover hints for editable elements */
+.card:not(.editing):hover .card-title,
+.card:not(.editing):hover .card-description {
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.card:not(.editing):hover .card-title::after {
+  content: " (double-click to edit)";
+  font-size: 0.8em;
+  color: #666;
+  font-style: italic;
+  font-weight: normal;
+}
+
+.card:not(.editing):hover .card-description::after {
+  content: " (double-click to edit)";
+  font-size: 0.8em;
+  color: #666;
+  font-style: italic;
+}
+
+/* Edit mode card styling */
+.card.editing {
+  border: 2px solid #4caf50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Edit input and textarea styling */
+.edit-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 3px;
+  line-height: inherit;
+}
+
+.edit-textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  border-radius: 3px;
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.4;
+}
+
+.edit-input:focus,
+.edit-textarea:focus {
+  outline: 2px solid #4caf50;
+  background: #f9f9f9;
+}
+
+/* Edit controls */
+.edit-controls {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.edit-controls button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.save-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #45a049;
+}
+
+.cancel-btn {
+  background: #f44336;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #d32f2f;
+}

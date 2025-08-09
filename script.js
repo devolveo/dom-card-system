@@ -90,8 +90,8 @@ function renderCards(cardsToRender = null) {
       (card) => `
       <div class="card" data-card-id="${card.id}">
         <button class="delete-btn" aria-label="Delete card">×</button>
-        <h3>${card.title}</h3>
-        <p>${card.description}</p>
+        <h3 class="card-title" data-field="title">${card.title}</h3>
+        <p class="card-description" data-field="description">${card.description}</p>
         <span class="category category-${card.category}">${card.category}</span>
       </div>
     `
@@ -152,6 +152,8 @@ function setupEventListeners() {
   }
 
   cardsContainer.addEventListener("click", handleCardClick);
+
+  cardsContainer.addEventListener("dblclick", handleCardDoubleClick);
 
   console.log("Event listeners attached");
 }
@@ -316,4 +318,176 @@ function loadCards() {
     console.error("loadCards: Failed to load", error);
     return false;
   }
+}
+
+// ========================================
+// STEP 2: DOUBLE-CLICK DETECTION
+// ========================================
+
+function handleCardDoubleClick(event) {
+  console.log("double-click detected on: ", event.target);
+
+  // check if the user clicked on an editable element
+  const editableElement = event.target.closest("[data-field]");
+
+  if (!editableElement) {
+    console.log("you clicked on an uneditable element: ", editableElement);
+    return;
+  }
+
+  //don't edit if already editing something
+  if (document.querySelector(".card.editing")) {
+    console.log("already editing another card");
+    return;
+  }
+
+  const field = editableElement.dataset.field;
+  const cardElement = editableElement.closest(".card");
+  const cardId = parseInt(cardElement.dataset.cardId);
+
+  console.log(`✅ Entering edit mode for field: ${field}, card ID: ${cardId}`);
+
+  enterEditMode(cardElement, editableElement, cardId, field);
+}
+
+function enterEditMode(cardElement, editableElement, cardId, field) {
+  console.log("Creating edit ui for ", field);
+
+  //get current value
+  const card = cards.find((c) => c.id === cardId);
+
+  if (!card) {
+    console.error("Card not found");
+    return;
+  }
+
+  const currentValue = card[field];
+  const isTextArea = field === "description";
+
+  //Store original content for cancel
+  editableElement.dataset.originalContent = editableElement.innerHTML;
+
+  // create input element
+  const inputElement = document.createElement(
+    isTextArea ? "textarea" : "input"
+  );
+
+  inputElement.className = isTextArea ? "edit-textarea" : "edit-input";
+  inputElement.value = currentValue;
+
+  // Create control buttons
+  const controlsDiv = document.createElement("div");
+  controlsDiv.className = "edit-controls";
+  controlsDiv.innerHTML = `
+    <button class="save-btn" data-action="save">Save</button>
+    <button class="cancel-btn" data-action="cancel">Cancel</button>
+  `;
+
+  editableElement.innerHTML = "";
+
+  // add: insert our edit interface
+  editableElement.appendChild(inputElement);
+  editableElement.appendChild(controlsDiv);
+
+  cardElement.classList.add("editing");
+  inputElement.focus();
+  inputElement.select();
+
+  controlsDiv.addEventListener("click", (e) => {
+    if (e.target.dataset.action === "save") {
+      saveEdit(cardElement, editableElement, cardId, field);
+    } else if (e.target.dataset.action === "cancel") {
+      cancelEdit(cardElement, editableElement);
+    }
+  });
+
+  // handle enter/Ctrl + enter
+  inputElement.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !isTextArea) {
+      e.preventDefault();
+      saveEdit(cardElement, editableElement, cardId, field);
+    } else if (e.key === "Enter" && e.ctrlKey && isTextArea) {
+      e.preventDefault();
+      saveEdit(cardElement, editableElement, cardId, field);
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEdit(cardElement, editableElement);
+    }
+  });
+}
+
+function saveEdit(cardElement, editableElement, cardId, field) {
+  console.log(`💾 Saving ${field} for card ${cardId}`);
+
+  // get new value
+  const inputElement = editableElement.querySelector(
+    ".edit-input, .edit-textarea"
+  );
+  if (!inputElement) {
+    console.error("Input element not found");
+    return;
+  }
+
+  const newValue = inputElement.value.trim();
+
+  // validate
+  if (!newValue) {
+    alert(`${field.charAt(0).toUpperCase() + field.slice(1)} cannot be empty`);
+    inputElement.focus();
+    return;
+  }
+
+  if (newValue.length > 100 && field === "title") {
+    alert("Title must be 100 chararcters or less");
+    inputElement.focus();
+    return;
+  }
+
+  // update data
+  const card = cards.find((c) => c.id === cardId);
+  if (!card) {
+    console.error("card not found");
+    return;
+  }
+
+  const cardOldValue = card[field];
+  card[field] = newValue;
+  card.updateAt = new Date().toISOString();
+
+  // save to local storage
+  const saved = saveCards();
+  if (!saved) {
+    alert("Failed to save changes");
+    card[field] = cardOldValue;
+    return;
+  }
+
+  exitEditMode(cardElement, editableElement);
+  renderCards();
+  console.log(`✅ Saved: "${cardOldValue}" → "${newValue}"`);
+}
+
+function cancelEdit(cardElement, editableElement) {
+  console.log("🚫 Canceling edit - restoring original content");
+
+  const originalContent = editableElement.dataset.originalContent;
+  if (!originalContent) {
+    console.error("❌ No original content found to restore");
+    exitEditMode(cardElement, editableElement);
+    return;
+  }
+  console.log("🔄 Restoring content:", originalContent);
+  editableElement.innerHTML = originalContent;
+  exitEditMode(cardElement, editableElement);
+  console.log("✅ Cancel completed - original content restored");
+}
+
+function exitEditMode(cardElement, editableElement) {
+  console.log("Exiting edit mode");
+
+  cardElement.classList.remove("editing");
+  delete editableElement.dataset.originalContent;
+  editableElement.focus();
+
+  console.log("✅ Edit mode cleanup completed");
 }
